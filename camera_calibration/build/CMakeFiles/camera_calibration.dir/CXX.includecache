@@ -6,7 +6,7 @@
 
 #IncludeRegexTransform: 
 
-/home/andreas/Desktop/EiT-ROS/src/camera_calibration/camera_calibration.cpp
+/home/andreas/Desktop/EiT-Calibration/camera_calibration/camera_calibration.cpp
 iostream
 -
 opencv2/opencv.hpp
@@ -14,9 +14,9 @@ opencv2/opencv.hpp
 string
 -
 camera_calibration.h
-/home/andreas/Desktop/EiT-ROS/src/camera_calibration/camera_calibration.h
+/home/andreas/Desktop/EiT-Calibration/camera_calibration/camera_calibration.h
 
-/home/andreas/Desktop/EiT-ROS/src/camera_calibration/camera_calibration.h
+/home/andreas/Desktop/EiT-Calibration/camera_calibration/camera_calibration.h
 vector
 -
 

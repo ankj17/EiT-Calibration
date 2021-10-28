@@ -1,4 +1,4 @@
-# Install script for directory: /home/andreas/Desktop/EiT-ROS/src/camera_calibration
+# Install script for directory: /home/andreas/Desktop/EiT-Calibration/camera_calibration
 
 # Set the install prefix
 if(NOT DEFINED CMAKE_INSTALL_PREFIX)
@@ -45,5 +45,5 @@ endif()
 
 string(REPLACE ";" "\n" CMAKE_INSTALL_MANIFEST_CONTENT
        "${CMAKE_INSTALL_MANIFEST_FILES}")
-file(WRITE "/home/andreas/Desktop/EiT-ROS/src/camera_calibration/build/${CMAKE_INSTALL_MANIFEST}"
+file(WRITE "/home/andreas/Desktop/EiT-Calibration/camera_calibration/build/${CMAKE_INSTALL_MANIFEST}"
      "${CMAKE_INSTALL_MANIFEST_CONTENT}")
