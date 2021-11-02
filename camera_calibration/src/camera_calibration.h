@@ -12,6 +12,9 @@ public:
     std::vector <cv::Mat> chessboardPose(cv::Mat img_rgb);
     std::vector<cv::Mat> handToEyeCalibration(std::string img_folder, std::string rtvec_folder);
     cv::Mat euler2rot(const cv::Mat & euler);
+    cv::Mat eulerAnglesToRotationMatrix(cv::Vec3f &theta);
+    cv::Vec3f rotationMatrixToEulerAngles(cv::Mat &R);
+    void calibrateCamera(std::string img_folder);
 };
 
 #endif 

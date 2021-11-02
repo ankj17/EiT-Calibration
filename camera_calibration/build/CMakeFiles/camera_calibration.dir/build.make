@@ -57,27 +57,27 @@ include CMakeFiles/camera_calibration.dir/progress.make
 # Include the compile flags for this target's objects.
 include CMakeFiles/camera_calibration.dir/flags.make
 
-CMakeFiles/camera_calibration.dir/camera_calibration.cpp.o: CMakeFiles/camera_calibration.dir/flags.make
-CMakeFiles/camera_calibration.dir/camera_calibration.cpp.o: ../camera_calibration.cpp
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/andreas/Desktop/EiT-Calibration/camera_calibration/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_1) "Building CXX object CMakeFiles/camera_calibration.dir/camera_calibration.cpp.o"
-	/usr/bin/c++  $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -o CMakeFiles/camera_calibration.dir/camera_calibration.cpp.o -c /home/andreas/Desktop/EiT-Calibration/camera_calibration/camera_calibration.cpp
+CMakeFiles/camera_calibration.dir/src/camera_calibration.cpp.o: CMakeFiles/camera_calibration.dir/flags.make
+CMakeFiles/camera_calibration.dir/src/camera_calibration.cpp.o: ../src/camera_calibration.cpp
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/andreas/Desktop/EiT-Calibration/camera_calibration/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_1) "Building CXX object CMakeFiles/camera_calibration.dir/src/camera_calibration.cpp.o"
+	/usr/bin/c++  $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -o CMakeFiles/camera_calibration.dir/src/camera_calibration.cpp.o -c /home/andreas/Desktop/EiT-Calibration/camera_calibration/src/camera_calibration.cpp
 
-CMakeFiles/camera_calibration.dir/camera_calibration.cpp.i: cmake_force
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing CXX source to CMakeFiles/camera_calibration.dir/camera_calibration.cpp.i"
-	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/andreas/Desktop/EiT-Calibration/camera_calibration/camera_calibration.cpp > CMakeFiles/camera_calibration.dir/camera_calibration.cpp.i
+CMakeFiles/camera_calibration.dir/src/camera_calibration.cpp.i: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing CXX source to CMakeFiles/camera_calibration.dir/src/camera_calibration.cpp.i"
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/andreas/Desktop/EiT-Calibration/camera_calibration/src/camera_calibration.cpp > CMakeFiles/camera_calibration.dir/src/camera_calibration.cpp.i
 
-CMakeFiles/camera_calibration.dir/camera_calibration.cpp.s: cmake_force
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling CXX source to assembly CMakeFiles/camera_calibration.dir/camera_calibration.cpp.s"
-	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/andreas/Desktop/EiT-Calibration/camera_calibration/camera_calibration.cpp -o CMakeFiles/camera_calibration.dir/camera_calibration.cpp.s
+CMakeFiles/camera_calibration.dir/src/camera_calibration.cpp.s: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling CXX source to assembly CMakeFiles/camera_calibration.dir/src/camera_calibration.cpp.s"
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/andreas/Desktop/EiT-Calibration/camera_calibration/src/camera_calibration.cpp -o CMakeFiles/camera_calibration.dir/src/camera_calibration.cpp.s
 
 # Object files for target camera_calibration
 camera_calibration_OBJECTS = \
-"CMakeFiles/camera_calibration.dir/camera_calibration.cpp.o"
+"CMakeFiles/camera_calibration.dir/src/camera_calibration.cpp.o"
 
 # External object files for target camera_calibration
 camera_calibration_EXTERNAL_OBJECTS =
 
-camera_calibration: CMakeFiles/camera_calibration.dir/camera_calibration.cpp.o
+camera_calibration: CMakeFiles/camera_calibration.dir/src/camera_calibration.cpp.o
 camera_calibration: CMakeFiles/camera_calibration.dir/build.make
 camera_calibration: /usr/local/lib/libopencv_dnn.so.4.5.0
 camera_calibration: /usr/local/lib/libopencv_gapi.so.4.5.0

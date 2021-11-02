@@ -1,5 +1,5 @@
 file(REMOVE_RECURSE
-  "CMakeFiles/camera_calibration.dir/camera_calibration.cpp.o"
+  "CMakeFiles/camera_calibration.dir/src/camera_calibration.cpp.o"
   "camera_calibration"
   "camera_calibration.pdb"
 )
