@@ -8,10 +8,9 @@
 
 cv::Vec3f rotationMatrixToEulerAngles(cv::Mat &R)
 {
-
     double sy = sqrt(R.at<double>(0,0) * R.at<double>(0,0) +  R.at<double>(1,0) * R.at<double>(1,0) );
 
-    bool singular = sy < 1e-6; // If
+    bool singular = sy < 1e-6;
 
     double x, y, z;
     if (!singular)
@@ -27,10 +26,8 @@ cv::Vec3f rotationMatrixToEulerAngles(cv::Mat &R)
         z = 0;
     }
     return cv::Vec3f(x, y, z);
-
 }
 
-// Calculates rotation matrix given euler angles.
 cv::Mat eulerAnglesToRotationMatrix(cv::Vec3f &theta)
 {
     // Calculate rotation about x axis
@@ -57,27 +54,20 @@ cv::Mat eulerAnglesToRotationMatrix(cv::Vec3f &theta)
     cv::Mat R = R_z * R_y * R_x;
 
     return R;
-
 }
 
 double computeReprojectionError(std::vector<std::vector<cv::Point3f>> object_points, 
 								std::vector<std::vector<cv::Point2f>> image_points, 
-								std::vector<cv::Mat> rvecs, std::vector<cv::Mat> tvecs, cv::Mat cameraMatrix,
-								cv::Mat distCoeffs){
+								std::vector<cv::Mat> rvecs, std::vector<cv::Mat> tvecs,
+								cv::Mat cameraMatrix, cv::Mat distCoeffs){
 
 	std::vector<cv::Point2f> image_points2;
 	double total_error = 0;
 	double mean_error = 0;
 	double total_points = 0;
-	
 
 	for (int i = 0; i < object_points.size(); i++){
 		cv::projectPoints(object_points[i], rvecs[i], tvecs[i], cameraMatrix, distCoeffs, image_points2);
-
-		//cv::Mat arr1 = (cv::Mat_<double>(1,2) << image_points[i], image_points[i]); 
-		//cv::Mat arr2 = (cv::Mat_<double>(1,2) << image_points2[i], image_points2[i]); 
-		
-		//total_error += cv::norm(arr1, arr2, cv::NORM_L2);	
 		total_error += cv::norm(image_points[i], image_points2, cv::NORM_L2);	
 		total_points += int(object_points.size());
 	}
@@ -87,9 +77,7 @@ double computeReprojectionError(std::vector<std::vector<cv::Point3f>> object_poi
 	return mean_error;
 }
 
-
 void calibrateCamera(std::string img_folder){
-
 	int iter = 0;
 	cv::Mat img;
 	cv::Mat cameraMatrix;
@@ -106,33 +94,26 @@ void calibrateCamera(std::string img_folder){
 	double square_size = 0.01;
 	std::vector<std::vector<cv::Point3f>> object_points;
 	std::vector<std::vector<cv::Point2f>> image_points;
+	cv::Size board_size = cv::Size(5, 6);
 
 	while(iter < 19)
 	{		
-		std::cout << "iteration: " << iter << std::endl;
 		img = cv::imread(img_folder + std::to_string(iter) + ".png", 0);
-		//cv::imshow("img", img);
-		//cv::waitKey(0);
 
 			if (!(img.empty()))
 			{
 				std::vector <cv::Mat> rtvecs;
 
-				//cv::cvtColor(img_rgb, img_rgb, cv::COLOR_BGR2GRAY);
-
 				// Detect chessboard
-				cv::Size board_size = cv::Size(5, 6);
 				std::vector<cv::Point2f> corners;
 
 				bool board_detected = cv::findChessboardCorners(img, board_size, corners, cv::CALIB_CB_ADAPTIVE_THRESH + cv::CALIB_CB_NORMALIZE_IMAGE
 									+ cv::CALIB_CB_FAST_CHECK);
 
 				if (board_detected){
-					std::cout << "chessboard found" << std::endl;
 					// Draw chessboard corners
 					cv::cornerSubPix(img, corners, cv::Size(11, 11), cv::Size(-1, -1), criteria);
 					cv::drawChessboardCorners(img, board_size, corners, board_detected);
-
 
 					// Define object points
 					std::vector<cv::Point3f> objp;
@@ -141,16 +122,10 @@ void calibrateCamera(std::string img_folder){
 						objp.push_back(cv::Point3f((double)j * square_size, (double)i * square_size, 0));
 
 					image_points.push_back(corners);
-					object_points.push_back(objp);
-
-					
-				}
-				//std::cout << "Chessboard detected" << std::endl;		
-				
+					object_points.push_back(objp);				
+				}		
 			}
 		iter++;
-	
-		std::cout << std::endl;
 	}
 
 	// Calibrate camera
@@ -188,95 +163,45 @@ std::vector<cv::Mat> convertCSVToMat(std::string filename){
 		rtvec.push_back(val);
     }
 
-	// Create rotation and translation vectors
+	// Create rotation matrix and translation vectors
 	std::vector<cv::Mat> rtvecs;
 	cv::Mat tvec = (cv::Mat_<double>(3,1) << rtvec[0], rtvec[1], rtvec[2]);
 	cv::Mat rvec = (cv::Mat_<double>(3,1) << rtvec[3], rtvec[4], rtvec[5]);
-
-	//std::cout << rvec << std::endl;
 	cv::Rodrigues(rvec, rvec);
-	
-	
-	//std::cout << rvec << std::endl;
-
-	//for (int i = 0; i < 3; i++)
-	//	tvec.at<double>(0,i) = tvec.at<double>(0,i)*1e3;
-
 
 	// Rotation and translation from tcp to board
 	cv::Mat tvec_tcp2board = (cv::Mat_<double>(3,1) << 29.0e-3, -58.0e-3, 35.0e-3);
-	//cv::Mat tvec_tcp2board = (cv::Mat_<double>(3,1) << 35.0e-3, 58.0e-3, -29.0e-3);
-	
-	//cv::Mat rvec_tcp2board = (cv::Mat_<double>(3,1) << 0.0, M_PI/2, M_PI/2);
-
-	//rvec_tcp2board = euler2rot(rvec_tcp2board);
-
 	cv::Vec3f theta(0.0, -M_PI/2, 0.0);
-	//cv::Vec3f theta(0.0, 0.0, 0.0);
-	//cv::Mat Rt = eulerAnglesToRotationMatrix(theta);
-
 	cv::Mat rvec_tcp2board = eulerAnglesToRotationMatrix(theta);
 
-	
-	//cv::transpose(rvec_tcp2board, rvec_tcp2board);
-	
-	//cv::multiply(rvec, rvec_tcp2board, rvec);
-	//cv::multiply(rvec_tcp2board, rvec, rvec);
-
-	//rvec = rvec * rvec_tcp2board;
-	//rvec = rvec*Rt;
-	//rvec = rvec.mul(rvec_tcp2board);
-	//std::cout << tvec << std::endl;
-	//tvec += tvec_tcp2board;
-	//std::cout << tvec << std::endl;
-
-	
+	// Get transformation from board to base
 	cv::Mat T_base2tcp = (cv::Mat_<double>(4,4) << rvec.at<double>(0,0), rvec.at<double>(0,1), rvec.at<double>(0,2), tvec.at<double>(0,0),
 										rvec.at<double>(1,0), rvec.at<double>(1,1), rvec.at<double>(1,2), tvec.at<double>(1,0),
 										rvec.at<double>(2,0), rvec.at<double>(2,1), rvec.at<double>(2,2), tvec.at<double>(2,0),	
 										0, 0, 0, 1);
-
-	//std::cout << "T_base2tcp: " << T_base2tcp << std::endl;			
-	//std::cout << "rvec: " << rvec << std::endl;	
-	//std::cout << "tvec: " << tvec << std::endl;	
 
 	cv::Mat T_tcp2board = (cv::Mat_<double>(4,4) << rvec_tcp2board.at<double>(0,0), rvec_tcp2board.at<double>(0,1), rvec_tcp2board.at<double>(0,2), tvec_tcp2board.at<double>(0,0),
 										rvec_tcp2board.at<double>(1,0), rvec_tcp2board.at<double>(1,1), rvec_tcp2board.at<double>(1,2), tvec_tcp2board.at<double>(1,0),
 										rvec_tcp2board.at<double>(2,0), rvec_tcp2board.at<double>(2,1), rvec_tcp2board.at<double>(2,2), tvec_tcp2board.at<double>(2,0),	
 										0, 0, 0, 1);
 
-
-	//std::cout << "T_tcp2board: " << T_tcp2board << std::endl;			
-	//std::cout << "rvec_tcp2board: " << rvec_tcp2board << std::endl;	
-	//std::cout << "tvec_tcp2board: " << tvec_tcp2board << std::endl;
-
 	cv::Mat T_base2board = T_base2tcp*T_tcp2board;
 	cv::Mat T_board2base = T_base2board.inv();
 
+	// Convert to rotation matrix and translation vector
 	rvec = (cv::Mat_<double>(3,3) << T_board2base.at<double>(0,0), T_board2base.at<double>(0,1), T_board2base.at<double>(0,2),
 									T_board2base.at<double>(1,0), T_board2base.at<double>(1,1), T_board2base.at<double>(1,2),
 									T_board2base.at<double>(2,0), T_board2base.at<double>(2,1), T_board2base.at<double>(2,2));
 	
 	tvec = (cv::Mat_<double>(3,1) << T_board2base.at<double>(0,3), T_board2base.at<double>(1,3), T_board2base.at<double>(2,3));
 	
-	//std::cout << "T1: " << T1 << std::endl;
-	//std::cout << rvec << std::endl;
-	//std::cout << tvec << std::endl;
-	
 	rtvecs.push_back(rvec);
 	rtvecs.push_back(tvec);
-	
-	//std::cout << rvec << std::endl;
-	//std::cout << tvec << std::endl;
 
 	return rtvecs;
-
 }
 
-
-
 std::vector <cv::Mat> chessboardPose(cv::Mat img_rgb){
-
 	std::vector <cv::Mat> rtvecs;
 
 	if (img_rgb.empty()){
@@ -288,9 +213,8 @@ std::vector <cv::Mat> chessboardPose(cv::Mat img_rgb){
  													0, 542.4292055789404, 234.0357776157248,
 													0, 0, 1);
 	cv::Mat distCoeffs = (cv::Mat_<double>(1,5) << 0.07119146583884028, -0.2196914925786512, -0.002597948246610898, 0.0003820731682348701, 0.1865085717723663);
-	cv::Mat P = (cv::Mat_<double>(3,4) << 574.0527954101562, 0.0, 319.5, 0.0, 0.0, 574.0527954101562, 239.5, 0.0, 0.0, 0.0, 1.0, 0.0);
-	cv::Mat rvec;// = cv::Mat(3,1);
-	cv::Mat tvec;// = cv::Mat(3,1);
+	cv::Mat rvec;
+	cv::Mat tvec;
 
 	// Termination criteria
 	cv::TermCriteria criteria = cv::TermCriteria(cv::TermCriteria::MAX_ITER +
@@ -298,9 +222,7 @@ std::vector <cv::Mat> chessboardPose(cv::Mat img_rgb){
                 500, // max number of iterations
                 0.0001); // min accuracy
 
-	//cv::cvtColor(img_rgb, img_rgb, cv::COLOR_BGR2GRAY);
 
-	
 	// Detect chessboard
 	cv::Size board_size = cv::Size(5, 6);
 	std::vector<cv::Point2f> corners;
@@ -312,7 +234,6 @@ std::vector <cv::Mat> chessboardPose(cv::Mat img_rgb){
 		std::cout << "no chessboard found" << std::endl;
 		return rtvecs;
 	}
-	//std::cout << "Chessboard detected" << std::endl;
 
 	// Draw chessboard corners
 	cv::cornerSubPix(img_rgb, corners, cv::Size(11, 11), cv::Size(-1, -1), criteria);
@@ -331,39 +252,16 @@ std::vector <cv::Mat> chessboardPose(cv::Mat img_rgb){
       for (int j = 0; j < board_width; j++)
         objp.push_back(cv::Point3f((double)j * square_size, (double)i * square_size, 0));
 
-	//image_points.push_back(corners);
-    //object_points.push_back(objp);
-
-	// Calibrate camera
-	//std::vector <cv::Mat> rvecs, tvecs;
-	//cv::calibrateCamera(object_points, image_points, img_rgb.size(), cameraMatrix, distCoeffs, rvecs, tvecs, cv::CALIB_FIX_K4);
-	
 	cv::Mat rvecs, tvecs;
 	cv::solvePnP(objp, corners, cameraMatrix, distCoeffs, rvecs, tvecs);
 
-
-	//std::cout << "distCoeffs: " << distCoeffs << std::endl;
-	//std::cout << "rvecs size: " << rvecs.size() << std::endl;
-
-	//for (int i = 0; i < tvecs.size(); i++)
-	//	tvecs[i] = tvecs[i]*1e-2;
-
-	//std::cout << "rvec" << rvecs << std::endl;
-	//std::cout << "tvec" << tvecs << std::endl;
-	
-	//rtvecs.push_back(rvecs[0]);
-	//rtvecs.push_back(tvecs[0]);
-
 	rtvecs.push_back(rvecs);
 	rtvecs.push_back(tvecs);
-	
-	//cv::imshow("img", img_rgb);
-	//cv::waitKey(0);
-	
+
 	return rtvecs;
 }
 
-std::vector<cv::Mat> handToEyeCalibration(std::string img_folder, std::string rtvec_folder){
+cv::Mat handToEyeCalibration(std::string img_folder, std::string rtvec_folder){
 	int nTransforms = 0;
 	std::vector<cv::Mat> rvecs_cam2board;
 	std::vector<cv::Mat> tvecs_cam2board;
@@ -377,16 +275,11 @@ std::vector<cv::Mat> handToEyeCalibration(std::string img_folder, std::string rt
 	
 	while(nTransforms < 19)
 	{		
-		std::cout << "nTransforms: " << nTransforms << std::endl;
 		img = cv::imread(img_folder + std::to_string(nTransforms) + ".png", 0);
-		//cv::imshow("img", img);
-		//cv::waitKey(0);
 
 			if (!(img.empty()))
 			{
 				rtvecs_cam2board = chessboardPose(img);
-				//rtvecs_cam2board[0] = rtvecs_cam2board[0];
-				//rtvecs_cam2board[1] = rtvecs_cam2board[1];
 				
 				if (!(rtvecs_cam2board.empty()))
 				{
@@ -399,23 +292,24 @@ std::vector<cv::Mat> handToEyeCalibration(std::string img_folder, std::string rt
 				}
 			}
 		nTransforms++;
-	
-		std::cout << std::endl;
 	}
 	
-	cv::Mat R_cam2base;
-	cv::Mat t_cam2base;
+	cv::Mat R_base2cam;
+	cv::Mat t_base2cam;
 
-	cv::calibrateHandEye(rvecs_base2board, tvecs_base2board, rvecs_cam2board, tvecs_cam2board, R_cam2base, t_cam2base, cv::CALIB_HAND_EYE_TSAI);
+	cv::calibrateHandEye(rvecs_base2board, tvecs_base2board, rvecs_cam2board, tvecs_cam2board, R_base2cam, t_base2cam, cv::CALIB_HAND_EYE_TSAI);
 
-	std::vector<cv::Mat> cam2base{R_cam2base, t_cam2base};
-	std::cout << "R: " << R_cam2base << std::endl;
-	std::cout << "t: " << t_cam2base << std::endl;
-
-	cv::Vec3f Rmat = rotationMatrixToEulerAngles(R_cam2base);
-	std::cout << "Rotation in euler: " << Rmat << std::endl;
 	
-	return cam2base;
+	cv::Mat T_base2cam = (cv::Mat_<double>(4,4) << R_base2cam.at<double>(0,0), R_base2cam.at<double>(0,1), R_base2cam.at<double>(0,2), t_base2cam.at<double>(0,0),
+										R_base2cam.at<double>(1,0), R_base2cam.at<double>(1,1), R_base2cam.at<double>(1,2), t_base2cam.at<double>(1,0),
+										R_base2cam.at<double>(2,0), R_base2cam.at<double>(2,1), R_base2cam.at<double>(2,2), t_base2cam.at<double>(2,0),	
+										0, 0, 0, 1);	
+	cv::Mat T_cam2base = T_base2cam.inv();
+	
+	std::cout << "T_base2cam: " << std::endl << T_base2cam << std::endl;
+	std::cout << "T_cam2base: " << std::endl << T_cam2base << std::endl;
+	
+	return T_cam2base;
 }
 
 
@@ -423,7 +317,7 @@ int main(int argc, char **argv)
 {
 	
 	//calibrateCamera("../data/cali_");
-	std::vector<cv::Mat> rtvector = handToEyeCalibration("../data/cali_", "../data/cali_");
+	cv::Mat T_cam2base = handToEyeCalibration("../data/cali_", "../data/cali_");
 
 	return 0; 
 }
