@@ -1,3 +1,0 @@
-/home/andreas/Desktop/EiT-Calibration/camera_calibration/build/CMakeFiles/rebuild_cache.dir
-/home/andreas/Desktop/EiT-Calibration/camera_calibration/build/CMakeFiles/edit_cache.dir
-/home/andreas/Desktop/EiT-Calibration/camera_calibration/build/CMakeFiles/camera_calibration.dir
