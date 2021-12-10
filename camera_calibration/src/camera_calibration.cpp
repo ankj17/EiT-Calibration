@@ -56,6 +56,22 @@ cv::Mat eulerAnglesToRotationMatrix(cv::Vec3f &theta)
     return R;
 }
 
+cv::Mat RTtoMatrix(cv::Mat R, cv::Mat t){
+	cv::Mat T = (cv::Mat_<double>(4,4) << R.at<double>(0,0), R.at<double>(0,1), R.at<double>(0,2), t.at<double>(0,0),
+															R.at<double>(1,0), R.at<double>(1,1), R.at<double>(1,2), t.at<double>(1,0),
+															R.at<double>(2,0), R.at<double>(2,1), R.at<double>(2,2), t.at<double>(2,0),	
+															0, 0, 0, 1);
+
+	return T;				
+}
+
+cv::Mat transformationToRotationMatrix(cv::Mat T){
+	cv::Mat rvec = (cv::Mat_<double>(3,3) << T.at<double>(0,0), T.at<double>(0,1), T.at<double>(0,2),
+									T.at<double>(1,0), T.at<double>(1,1), T.at<double>(1,2),
+									T.at<double>(2,0), T.at<double>(2,1), T.at<double>(2,2));
+	return rvec;
+}
+
 double computeReprojectionError(std::vector<std::vector<cv::Point3f>> object_points, 
 								std::vector<std::vector<cv::Point2f>> image_points, 
 								std::vector<cv::Mat> rvecs, std::vector<cv::Mat> tvecs,
@@ -171,22 +187,20 @@ std::vector<cv::Mat> convertCSVToMat(std::string filename){
 
 	// Rotation and translation from tcp to board
 	cv::Mat tvec_tcp2board = (cv::Mat_<double>(3,1) << 29.0e-3, -58.0e-3, 35.0e-3);
-	cv::Vec3f theta(0.0, -M_PI/2, 0.0);
+	//cv::Vec3f theta(-M_PI/2, M_PI, 0.0);
+	cv::Vec3f theta(0.0, -M_PI, 0.0);
+	
+	
 	cv::Mat rvec_tcp2board = eulerAnglesToRotationMatrix(theta);
 
 	// Get transformation from board to base
-	cv::Mat T_base2tcp = (cv::Mat_<double>(4,4) << rvec.at<double>(0,0), rvec.at<double>(0,1), rvec.at<double>(0,2), tvec.at<double>(0,0),
-										rvec.at<double>(1,0), rvec.at<double>(1,1), rvec.at<double>(1,2), tvec.at<double>(1,0),
-										rvec.at<double>(2,0), rvec.at<double>(2,1), rvec.at<double>(2,2), tvec.at<double>(2,0),	
-										0, 0, 0, 1);
-
-	cv::Mat T_tcp2board = (cv::Mat_<double>(4,4) << rvec_tcp2board.at<double>(0,0), rvec_tcp2board.at<double>(0,1), rvec_tcp2board.at<double>(0,2), tvec_tcp2board.at<double>(0,0),
-										rvec_tcp2board.at<double>(1,0), rvec_tcp2board.at<double>(1,1), rvec_tcp2board.at<double>(1,2), tvec_tcp2board.at<double>(1,0),
-										rvec_tcp2board.at<double>(2,0), rvec_tcp2board.at<double>(2,1), rvec_tcp2board.at<double>(2,2), tvec_tcp2board.at<double>(2,0),	
-										0, 0, 0, 1);
+	cv::Mat T_base2tcp = RTtoMatrix(rvec, tvec);
+	cv::Mat T_tcp2board = RTtoMatrix(rvec_tcp2board, tvec_tcp2board);
 
 	cv::Mat T_base2board = T_base2tcp*T_tcp2board;
 	cv::Mat T_board2base = T_base2board.inv();
+
+	//cv::Mat T_board2base = T_base2tcp.inv();
 
 	// Convert to rotation matrix and translation vector
 	rvec = (cv::Mat_<double>(3,3) << T_board2base.at<double>(0,0), T_board2base.at<double>(0,1), T_board2base.at<double>(0,2),
@@ -197,6 +211,9 @@ std::vector<cv::Mat> convertCSVToMat(std::string filename){
 	
 	rtvecs.push_back(rvec);
 	rtvecs.push_back(tvec);
+
+
+	std::cout << "tvec: " << tvec << std::endl;
 
 	return rtvecs;
 }
@@ -209,10 +226,10 @@ std::vector <cv::Mat> chessboardPose(cv::Mat img_rgb){
 		return rtvecs;
 	}
 
-	cv::Mat cameraMatrix = (cv::Mat_<double>(3,3) << 541.5060170883244, 0, 318.9616276306665,
- 													0, 542.4292055789404, 234.0357776157248,
+	cv::Mat cameraMatrix = (cv::Mat_<double>(3,3) << 551.6570310249326, 0, 319.8393905438384,
+ 													0, 551.6960583443193, 240.7978933954921,
 													0, 0, 1);
-	cv::Mat distCoeffs = (cv::Mat_<double>(1,5) << 0.07119146583884028, -0.2196914925786512, -0.002597948246610898, 0.0003820731682348701, 0.1865085717723663);
+	cv::Mat distCoeffs = (cv::Mat_<double>(1,5) << -0.02728732995117321, 0.8338034682943555, 0.00258786736198274, -0.00151950357701773, -2.771420832332028);
 	cv::Mat rvec;
 	cv::Mat tvec;
 
@@ -254,9 +271,16 @@ std::vector <cv::Mat> chessboardPose(cv::Mat img_rgb){
 
 	cv::Mat rvecs, tvecs;
 	cv::solvePnP(objp, corners, cameraMatrix, distCoeffs, rvecs, tvecs);
+	
 
 	rtvecs.push_back(rvecs);
 	rtvecs.push_back(tvecs);
+
+	//cv::imshow("img", img_rgb);
+	//cv::waitKey(0);
+
+	std::cout << "tvec: " << tvec << std::endl;
+	std::cout << "objp: " << objp << std::endl;
 
 	return rtvecs;
 }
@@ -273,7 +297,7 @@ cv::Mat handToEyeCalibration(std::string img_folder, std::string rtvec_folder){
 
 	cv::Mat img;
 	
-	while(nTransforms < 19)
+	while(nTransforms < 25)
 	{		
 		img = cv::imread(img_folder + std::to_string(nTransforms) + ".png", 0);
 
@@ -297,27 +321,63 @@ cv::Mat handToEyeCalibration(std::string img_folder, std::string rtvec_folder){
 	cv::Mat R_base2cam;
 	cv::Mat t_base2cam;
 
-	cv::calibrateHandEye(rvecs_base2board, tvecs_base2board, rvecs_cam2board, tvecs_cam2board, R_base2cam, t_base2cam, cv::CALIB_HAND_EYE_TSAI);
+	std::cout << "tvecs_base2board: " << tvecs_base2board[0] << std::endl;
+	std::cout << "rvecs_base2board: " << rvecs_base2board[0] << std::endl;
+	std::cout << "tvecs_cam2board: " << tvecs_cam2board[0] << std::endl;
+	std::cout << "rvecs_cam2board: " << rvecs_cam2board[0] << std::endl;
+
+	cv::calibrateHandEye(rvecs_base2board, tvecs_base2board, rvecs_cam2board, tvecs_cam2board, R_base2cam, t_base2cam, cv::CALIB_HAND_EYE_PARK); //Park
 
 	
 	cv::Mat T_base2cam = (cv::Mat_<double>(4,4) << R_base2cam.at<double>(0,0), R_base2cam.at<double>(0,1), R_base2cam.at<double>(0,2), t_base2cam.at<double>(0,0),
 										R_base2cam.at<double>(1,0), R_base2cam.at<double>(1,1), R_base2cam.at<double>(1,2), t_base2cam.at<double>(1,0),
 										R_base2cam.at<double>(2,0), R_base2cam.at<double>(2,1), R_base2cam.at<double>(2,2), t_base2cam.at<double>(2,0),	
 										0, 0, 0, 1);	
+	
+	/*cv::Mat T_base2cam = (cv::Mat_<double>(4,4) << 1, 0, 0, t_base2cam.at<double>(0,0),
+										0, 1, 0, t_base2cam.at<double>(1,0),
+										0, 0, 1, t_base2cam.at<double>(2,0),	
+										0, 0, 0, 1);	
+	*/
+	
 	cv::Mat T_cam2base = T_base2cam.inv();
 	
 	std::cout << "T_base2cam: " << std::endl << T_base2cam << std::endl;
 	std::cout << "T_cam2base: " << std::endl << T_cam2base << std::endl;
+
+	
 	
 	return T_cam2base;
 }
 
-
 int main(int argc, char **argv)
 {
 	
+	cv::Mat T_cam2base = handToEyeCalibration("../data/pose_", "../data/pose_");
+
+
+
+	std::cout << "T_base2target" << std::endl;
+	cv::Mat T_cam2target = (cv::Mat_<double>(4,4) << 1, 0, 0, -0.01415853668, 
+													0, 1, 0, 0.0173048768193, 
+													0, 0, 1, 0.601999998093, 
+													0, 0, 0, 1);
+
+	
+
+
+	// Z + 166.5
+	cv::Mat T_base2target = T_cam2target.inv() * T_cam2base;
+
+	std::cout << T_base2target.inv() << std::endl;
+
+	//572, -257
+
+	//calculateCalibrationError("../data/pose_", "../data/pose_", T_cam2base);
+
+
+
 	//calibrateCamera("../data/cali_");
-	cv::Mat T_cam2base = handToEyeCalibration("../data/cali_", "../data/cali_");
 
 	return 0; 
 }

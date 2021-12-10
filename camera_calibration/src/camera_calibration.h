@@ -15,6 +15,7 @@ public:
     cv::Mat eulerAnglesToRotationMatrix(cv::Vec3f &theta);
     cv::Vec3f rotationMatrixToEulerAngles(cv::Mat &R);
     void calibrateCamera(std::string img_folder);
+    cv::Mat RTtoMatrix(cv::Mat R, cv::Mat t);
 };
 
 #endif 
